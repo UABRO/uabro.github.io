@@ -431,8 +431,8 @@ Oleksii Shnyra, UABRO
                 LangDC[selfid].type = 'itext';
                 instance.t = selfDC.lang(obj.state.itext);
               }
-              instance.state[prop] = obj.state[prop];
             }
+            instance.state[prop] = obj.state[prop];
           }
         }
       }
