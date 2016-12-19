@@ -96,7 +96,7 @@ Oleksii Shnyra, UABRO
     var selfDC = this;
     Object.defineProperty(this, 'version', {
       get() {
-        return '1.8.8';
+        return '1.8.9';
       }
     });
     if (!window.Worker) {// support only IE10+
@@ -361,7 +361,9 @@ Oleksii Shnyra, UABRO
       }
       var instance = this;
       var selfid = ++DCid;
-      const state = {};
+      const state = {
+        class: ''
+      };
       const data = {};
       instance.state = state;
       instance.data = data;
@@ -504,6 +506,7 @@ Oleksii Shnyra, UABRO
 
     DomCom.prototype.hasClass = function (v) {
       var cur = this.state.class;
+      cur = cur.split(' ');
       return cur.indexOf(v) > -1;
     }
 
