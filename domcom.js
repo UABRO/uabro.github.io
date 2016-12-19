@@ -96,7 +96,7 @@ Oleksii Shnyra, UABRO
     var selfDC = this;
     Object.defineProperty(this, 'version', {
       get() {
-        return '1.8.7';
+        return '1.8.8';
       }
     });
     if (!window.Worker) {// support only IE10+
@@ -503,23 +503,32 @@ Oleksii Shnyra, UABRO
     }
 
     DomCom.prototype.hasClass = function (v) {
-      var cl = this.state.class;
-      if (cl && cl.length) {
-        var i = cl ? cl.indexOf(v) + 1 : false;
-      } else { return false; }
-      return i ? i : false;
+      var cur = this.state.class;
+      return cur.indexOf(v) > -1;
     }
 
     DomCom.prototype.addClass = function (v) {
-      this.el.classList.add(v);
+      var cur = this.state.class;
+      cur = cur.split(' ');
+      if(cur.indexOf(v) == -1){
+        cur.push(v);
+        this.state.class = this.el.classList = cur.join(' ');
+      }
     }
 
     DomCom.prototype.removeClass = function (v) {
-      this.el.classList.remove(v);
+      var cur = this.state.class;
+      cur = cur.split(' ');
+      if(cur.indexOf(v) > -1){
+        cur.splice(cur.indexOf(v),1);
+        this.state.class = this.el.classList = cur.join(' ');
+      }
     }
 
     DomCom.prototype.toggleClass = function (v) {
-      this.el.classList.toggle(v);
+      this.hasClass(v)?
+      this.removeClass(v):
+      this.addClass(v);
     }
 
     DomCom.prototype.eventsArr = [];
