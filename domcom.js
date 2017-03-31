@@ -1,10 +1,10 @@
 /*
 
-DomCom framework, 2016,
-Oleksii Shnyra, UABRO
+ DomCom framework, 2016,
+ Oleksii Shnyra, UABRO
 
-*/
-(function () {
+ */
+!function () {
   'use strict';
   if (!('remove' in Element.prototype)) {
     Element.prototype.remove = function () {
@@ -23,11 +23,11 @@ Oleksii Shnyra, UABRO
   }
 
   Element.prototype.css = function (obj) {
-    var prop;
+    let prop;
     if (typeof obj == 'string') {
       return this.style[obj];
     }
-    for (var i in obj) {
+    for (let i in obj) {
       prop = obj[i];
       if (typeof prop != 'string') prop += 'px';
       this.style[i] = prop;
@@ -36,7 +36,7 @@ Oleksii Shnyra, UABRO
   };
 
   Element.prototype.resize = document.resize = function (obj) {
-    var prop;
+    let prop;
     console.log('ok');
   };
 
@@ -44,76 +44,82 @@ Oleksii Shnyra, UABRO
     if (typeof a == 'string') {
       return this.getAttribute(a);
     } else {
-      for (var b in a) {
+      for (let b in a) {
         this.setAttribute(b, a[b]);
       }
       return true;
     }
-  }
+  };
 
   Element.prototype.show = function (v) {
     if (!arguments.length) v = 'block';
     this.style.display = v;
-  }
+  };
 
   Element.prototype.hide = function () {
     this.style.display = 'none';
-  }
+  };
 
   Element.prototype.height = function () {
     return this.offsetHeight;
-  }
+  };
 
   Element.prototype.width = function () {
     return this.offsetWidth;
-  }
+  };
 
   Element.prototype.text = function (v) {
-    if (v) { this.textContent = v; } else {
+    if (v) {
+      this.textContent = v;
+    } else {
       return this.textContent;
     }
-  }
+  };
 
   Element.prototype.html = function (v) {
-    if (v) { this.innerHTML = v; } else {
+    if (v) {
+      this.innerHTML = v;
+    } else {
       return this.innerHTML;
     }
-  }
+  };
 
   Element.prototype.val = function (v) {
-    if (typeof v != 'undefined') { this.value = v; } else {
+    if (typeof v != 'undefined') {
+      this.value = v;
+    } else {
       return this.value;
     }
-  }
+  };
 
   Element.prototype.crec = function () {
     return this.getBoundingClientRect();
-  }
+  };
 
   // actual initialization of DC
 
-  var DC = function () {
-    var selfDC = this;
+  const DC = function () {
+    let selfDC = this;
     Object.defineProperty(this, 'version', {
       get() {
-        return '1.8.9';
+        return '1.9.1';
       }
     });
-    if (!window.Worker) {// support only IE10+
+    if (!window.fetch) {// support only modern browsers
       selfDC.ready = function () {
         document.addEventListener("DOMContentLoaded", function () {
           document.body.innerHTML = "<h1><b style='color:#000;padding:10px;'>You are using bad browser! What's wrong with you, man!???</b></h1>";
         });
-      }
-      return false;
+      };
+      return;
     }
-    var parseHTML = function (html, ctx) {
-      var a, el, ctxel, char, parent, closingtag, godown = -1, goup,
+    let parseHTML = function (html, ctx) {
+      let a, el, ctxel, char, parent, closingtag, godown = -1, goup,
         quoted, dom, attris, tagready, tagstarted, intag, inspectag,
         text = '',
         quote = '',
         buf = '';
-      for (var i = 0; i < html.length; i++) {
+      for (let i = 0; i < html.length; i++) {
         char = html[i];
         if (intag) {// for operations between "<" && ">"
           if (tagready) {
@@ -126,35 +132,35 @@ Oleksii Shnyra, UABRO
                 el.attr(a);
               }
               quote = '';
-            } else
-              if (quoted) {
-                quote += char;
+            } else if (quoted) {
+              quote += char;
+            } else {
+              if (closingtag || char == '>') {
+                if (char == '>') {
+                  intag = 0;
+                  if (closingtag) {
+                    if (el && el.parentNode) el = el.parentNode;
+                    if (goup) {
+                      if (parent.parentNode) parent = parent.parentNode;
+                      godown = 0;
+                    } else {
+                      goup = 1;
+                      godown = 0;
+                    }
+                  } else if (el && /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(el.tagName)) el = el.parentNode;
+                  closingtag = 0;
+                }
               } else {
-                if (closingtag || char == '>') {
-                  if (char == '>') {
-                    intag = 0;
-                    if (closingtag) {
-                      if (el && el.parentNode) el = el.parentNode;
-                      if (goup) {
-                        if (parent.parentNode) parent = parent.parentNode;
-                        godown = 0;
-                      } else {
-                        goup = 1;
-                        godown = 0;
-                      }
-                    } else
-                      if (el && /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(el.tagName)) el = el.parentNode;
-                    closingtag = 0;
-                  }
+                if (char == '/') {
+                  closingtag = 1;
                 } else {
-                  if (char == '/') {
-                    closingtag = 1;
+                  if (/[^a-z0-9_]/i.test(char)) {
                   } else {
-                    if (/[^a-z0-9_]/i.test(char)) {
-                    } else { attris += char; }
+                    attris += char;
                   }
                 }
               }
+            }
           } else {
             if (tagstarted) {
               if (/[ >]/.test(char)) {
@@ -172,63 +178,68 @@ Oleksii Shnyra, UABRO
               } else {
                 buf += char;
               }
-            } else if (/[a-z0-9_]/i.test(char)) { tagstarted = 1; buf = char; }
+            } else if (/[a-z0-9_]/i.test(char)) {
+              tagstarted = 1;
+              buf = char;
+            }
           }
-        } else
-          if (inspectag) {// for operations between "{" && "}"
-            if (tagready) {
-              buf += html[i - 1];
-              ctx[buf].insertIn(el);
-              inspectag = 0;
+        } else if (inspectag) {// for operations between "{" && "}"
+          if (tagready) {
+            buf += html[i - 1];
+            ctx[buf].insertIn(el);
+            inspectag = 0;
+          } else {
+            if (html[i + 1] == '}') {
+              tagready = 1;
             } else {
-              if (html[i + 1] == '}') {
-                tagready = 1;
+              buf += char;
+            }
+          }
+        } else {
+          if (char == '<') {
+            intag = 1;
+            buf = '';
+            if (text.length && el) {
+              el.appendChild(document.createTextNode(text));
+              text = '';
+            }
+            if (/[a-z0-9_]/i.test(html[i + 1])) {
+              tagready = 0;
+              if (godown) {
+                parent = el;
+                goup = 0;
               } else {
-                buf += char;
+                godown++;
+                goup = 0;
               }
+            } else if (html[i + 1] == '/') {
+              closingtag = 1;
+            }
+          } else if (char == '{') {
+            inspectag = 1;
+            tagready = 0;
+            buf = '';
+            if (text.length && el) {
+              el.appendChild(document.createTextNode(text));
+              text = '';
             }
           } else {
-            if (char == '<') {
-              intag = 1;
-              buf = '';
-              if (text.length && el) { el.appendChild(document.createTextNode(text)); text = ''; }
-              if (/[a-z0-9_]/i.test(html[i + 1])) {
-                tagready = 0;
-                if (godown) {
-                  parent = el;
-                  goup = 0;
-                } else {
-                  godown++;
-                  goup = 0;
-                }
-              } else
-                if (html[i + 1] == '/') {
-                  closingtag = 1;
-                }
-            } else
-              if (char == '{') {
-                inspectag = 1;
-                tagready = 0;
-                buf = '';
-                if (text.length && el) { el.appendChild(document.createTextNode(text)); text = ''; }
-              } else {
-                text += char;
-              }
+            text += char;
           }
+        }
       }
       return dom;
-    }
+    };
 
     selfDC.ready = function (a) {
       document.addEventListener("DOMContentLoaded", a);
-    }
+    };
 
-    var DCglo = [];
-    var Groups = {};// consist of arrays of reference to dcs
-    var LangDC = {};// references to dcs for multi language purposes
+    let Groups = {};// consist of arrays of reference to dcs
+    let LangDC = {};// references to dcs for multi language purposes
 
     (function () {
-      var Events = { 'lang': 1 };// list of all pseudo-events
+      let Events = {'lang': 1};// list of all pseudo-events
 
       selfDC.setPseudo = arr => {
         if (typeof arr == 'string') arr = [arr];
@@ -236,87 +247,83 @@ Oleksii Shnyra, UABRO
           if (Events[name]) return;
           Events[name] = [];
         });
-      }
+      };
 
       selfDC.newPseudo = (name, dc) => {
         if (!Events[name]) return;
         Events[name].push(dc);
-      }
+      };
 
       selfDC.isPseudo = name => {
-        return Events[name] ? true : false;
-      }
+        return !!Events[name];
+      };
 
-      selfDC.emit = name => {
+      selfDC.emit = (name, data) => {
         if (!Events[name]) return;
         Events[name].forEach(dc => {
-          dc['on' + name]();
+          dc['on' + name](data);
         });
       }
-    } ());
+    }());
 
     selfDC.lang = function () {
-      var current;// current language indicator [en,uk etc.]
-      var Lang = {};// language specific phrases
-      var fn = phrase => {
+      let current;// current language indicator [en,uk etc.]
+      let Lang = {};// language specific phrases
+      let fn = phrase => {
         if (!current) {
           console.log('Error. Language was not set');
           return 'undefined';
         }
         return Lang[current][phrase];
-      }
+      };
 
       fn.set = obj => {
-        for (var lang in obj) {
+        for (let lang in obj) {
           Lang[lang] = obj[lang];
         }
         return fn;
-      }
+      };
 
-      fn.get = obj => {
+      fn.get = () => {
         return current;
-      }
+      };
 
       fn.ready = lang => {
-        return Lang[lang] ? true : false;
-      }
+        return !!Lang[lang];
+      };
 
       fn.turn = lang => {
         if (lang != current) {
           current = lang;
-          for (var key in LangDC) {
-            var obj = LangDC[key];
+          for (let key in LangDC) {
+            let obj = LangDC[key];
             if (obj.f) {
               obj.f();
             } else {
               switch (obj.type) {
                 case 'html':
-                  obj.dc.change({ html: selfDC.lang(obj.dc.state.ihtml) });
+                  obj.dc.change({html: selfDC.lang(obj.dc.state.ihtml)});
                   break;
                 case 'placeholder':
-                  obj.dc.change({ placeholder: selfDC.lang(obj.dc.state.iholder) });
+                  obj.dc.change({placeholder: selfDC.lang(obj.dc.state.iholder)});
                   break;
                 default:
-                  obj.dc.change({ text: selfDC.lang(obj.dc.state.itext) });
+                  obj.dc.change({text: selfDC.lang(obj.dc.state.itext)});
                   break;
-              };
+              }
             }
           }
         }
-      }
+      };
 
       return fn;
-    } ();
+    }();
 
-    var DCid = 0;
-    var a, b, c;// temp reference
-    // DC.all not recommend to be used in production mode
-    // selfDC.all = function(){
-    //   return DCglo;
-    // }
+    let DCid = 0;
+    let a, b;
 
     selfDC.sel = function (v, one) {
-      var el;
+      let el;
       if (typeof v == 'object') {
         if (v === document) {
           return document;
@@ -332,11 +339,11 @@ Oleksii Shnyra, UABRO
       }
       if (!el.length && !(el instanceof Element)) return false;
       return el;
-    }
+    };
 
     selfDC.onwindow = function (e, f) {
       window.addEventListener(e, f);
-    }
+    };
 
     selfDC.forg = function (a, f) {
       if (f) {
@@ -346,21 +353,21 @@ Oleksii Shnyra, UABRO
       } else {
         return Groups[a];
       }
-    }
+    };
 
     function apply_set_get(object, set_get) {
       for (let prop in set_get) Object.defineProperty(object, prop, set_get[prop]);
     }
 
-    var DomCom = function (obj) {
-      if (!obj) { obj = {}; } else if (!obj.temp) {
-        DCglo.push(this);
+    const DomCom = function (obj) {
+      if (!obj) {
+        obj = {};
       }
       if (obj.getSelf) {
         obj.getSelf(this);
       }
-      var instance = this;
-      var selfid = ++DCid;
+      let instance = this;
+      let selfId = ++DCid;
       const state = {
         class: ''
       };
@@ -370,7 +377,7 @@ Oleksii Shnyra, UABRO
       apply_set_get(instance, {
         id: {
           get() {
-            return selfid;
+            return selfId;
           }
         },
         t: {
@@ -409,28 +416,29 @@ Oleksii Shnyra, UABRO
           }
         }
       });
+      if (obj.elType) obj.eltype = obj.elType;
       instance.eltype = obj.eltype ? obj.eltype : 'div';
       instance.el = document.createElement(instance.eltype);
       if (obj.extend) {
         instance.extend(obj.extend);
       }
       if (obj.state) {
-        for (var prop in obj.state) {
+        for (let prop in obj.state) {
           if (prop == 'class') {
             instance.state.class = obj.state[prop];
           } else {
             if (prop == 'itext' || prop == 'ihtml' || prop == 'iholder') {
-              LangDC[selfid] = {
+              LangDC[selfId] = {
                 dc: instance
               };
               if (prop == 'ihtml') {
-                LangDC[selfid].type = 'html';
+                LangDC[selfId].type = 'html';
                 instance.h = selfDC.lang(obj.state.ihtml);
               } else if (prop == 'iholder') {
-                LangDC[selfid].type = 'placeholder';
+                LangDC[selfId].type = 'placeholder';
                 instance.state.placeholder = selfDC.lang(obj.state.iholder);
               } else {
-                LangDC[selfid].type = 'itext';
+                LangDC[selfId].type = 'itext';
                 instance.t = selfDC.lang(obj.state.itext);
               }
             }
@@ -439,10 +447,14 @@ Oleksii Shnyra, UABRO
         }
       }
       if (obj.attrs) {
-        for (var prop in obj.attrs) {
+        for (let prop in obj.attrs) {
           a = {};
           a[prop] = obj.attrs[prop];
-          if (prop == 'value') { instance.state.val = obj.attrs[prop]; } else { instance.state[prop] = obj.attrs[prop]; }
+          if (prop == 'value') {
+            instance.state.val = obj.attrs[prop];
+          } else {
+            instance.state[prop] = obj.attrs[prop];
+          }
           instance.el.attr(a);
         }
       }
@@ -471,98 +483,102 @@ Oleksii Shnyra, UABRO
       if (obj.events) {// should be last obj method
         instance.addEvents(obj.events);
       }
-    }
+    };
 
     // use prototype for performance reasons
     DomCom.prototype.parentEl = false;
 
     DomCom.prototype.insertIn = DomCom.prototype.iIn = function (target) {
-      var el = selfDC.sel(target, 1);
+      let el = selfDC.sel(target, 1);
       el.appendChild(this.el);
       this.parentEl = el;
       return this.render();
-    }
+    };
 
     DomCom.prototype.insertAs = DomCom.prototype.iAs = function (target) {
-      var el = selfDC.sel(target, 1);
+      let el = selfDC.sel(target, 1);
       this.el = el;
       return this.render({});
-    }
+    };
 
     DomCom.prototype.change = function (state, api) {
-      var only = {}, i = 0;
+      let only = {}, i = 0;
       if (api) {
         if (this.chapi && state) {// onChange API
           this.chapi(state);
           return;
         }
       }
-      for (var b in state) {
+      for (let b in state) {
         this.state[b] = state[b], only[b] = true;
         if (['html', 'text', 'val', 'placeholder', 'class'].indexOf(b) + 1) i++;
       }
-      if (i) { this.render(only); } else { return this; }
-    }
+      if (i) {
+        this.render(only);
+      } else {
+        return this;
+      }
+    };
 
     DomCom.prototype.hasClass = function (v) {
-      var cur = this.state.class;
+      let cur = this.state.class;
       cur = cur.split(' ');
       return cur.indexOf(v) > -1;
-    }
+    };
 
     DomCom.prototype.addClass = function (v) {
-      var cur = this.state.class;
+      let cur = this.state.class;
       cur = cur.split(' ');
-      if(cur.indexOf(v) == -1){
+      if (cur.indexOf(v) == -1) {
         cur.push(v);
         this.state.class = this.el.classList = cur.join(' ');
       }
-    }
+    };
 
     DomCom.prototype.removeClass = function (v) {
-      var cur = this.state.class;
+      let cur = this.state.class;
       cur = cur.split(' ');
-      if(cur.indexOf(v) > -1){
-        cur.splice(cur.indexOf(v),1);
+      if (cur.indexOf(v) > -1) {
+        cur.splice(cur.indexOf(v), 1);
         this.state.class = this.el.classList = cur.join(' ');
       }
-    }
+    };
 
     DomCom.prototype.toggleClass = function (v) {
-      this.hasClass(v)?
-      this.removeClass(v):
-      this.addClass(v);
-    }
+      this.hasClass(v) ?
+        this.removeClass(v) :
+        this.addClass(v);
+    };
 
     DomCom.prototype.eventsArr = [];
     DomCom.prototype.intervalArr = [];
     DomCom.prototype.interval = function (f, t) {
       this.intervalArr.push(setInterval(f, t));
-    }
+    };
 
     DomCom.prototype.clearIntervals = function () {
       this.intervalArr.forEach(function (v) {
         clearInterval(v);
       });
-    }
+    };
 
     DomCom.prototype.timeoutArr = [];
     DomCom.prototype.timeout = function (f, t) {
       this.timeoutArr.push(setTimeout(f, t));
-    }
+    };
 
     DomCom.prototype.clearTimeouts = function () {
       this.timeoutArr.forEach(function (v) {
         clearTimeout(v);
       });
-    }
+    };
 
     DomCom.prototype.remove = function () {
       this.el.remove();
       this.removed = true;
       this.clearIntervals();
       return true;
-    }
+    };
 
     DomCom.prototype.replaceWith = function (node, ishtml) {
       if (typeof node == 'string') {
@@ -573,34 +589,34 @@ Oleksii Shnyra, UABRO
         }
       } else if ('el' in node) {
         // if `node` is dc
-        if(node.state) for(let prop in node.state) this.state[prop] = node.state[prop];
+        if (node.state) for (let prop in node.state) this.state[prop] = node.state[prop];
         node = node.el;
       }
       this.el.parentNode.replaceChild(node, this.el);
       this.el = node;
-    }
+    };
 
     DomCom.prototype.parse = function (html, ctx) {// parse string as html and insert accordingly contextual elements as dcs
-      var dom = parseHTML(html, ctx);
+      let dom = parseHTML(html, ctx);
       this.el = dom;
       if (dom.attr('class')) this.state.class = dom.attr('class');
       return this;
-    }
+    };
 
     DomCom.prototype.extend = function (obj) {// set or rewrite methods and properties of dc
-      var self = this;
-      for (var prop in obj) {
+      let self = this;
+      for (let prop in obj) {
         if (prop == 'events') {
           self.addEvents(obj[prop]);
         } else {
           self[prop] = obj[prop];
         }
       }
-    }
+    };
 
     DomCom.prototype.addEvents = function (obj) {
-      var self = this;
-      for (var prop in obj) {
+      let self = this;
+      for (let prop in obj) {
         if (selfDC.isPseudo(prop)) {
           if (prop == 'lang') {
             LangDC[self.id] = {
@@ -617,19 +633,19 @@ Oleksii Shnyra, UABRO
           self.el.addEventListener(prop, self['on' + prop]);
         }
       }
-    }
+    };
 
     DomCom.prototype.DClist = function (v) {
-      var self = this;
-      self.change({ html: '' });
+      let self = this;
+      self.change({html: ''});
       v.map(function (a) {
         a.insertIn(self);
       });
       return self;
-    }
+    };
 
     DomCom.prototype.render = function (only) {
-      var state = this.state, cs;
+      let state = this.state, cs;
       if (only) {
         if ('html' in only) this.el.innerHTML = state.html;
         if ('text' in only) this.el.textContent = state.text;
@@ -638,7 +654,7 @@ Oleksii Shnyra, UABRO
         if ('class' in only) {
           cs = state.class;
           cs = typeof cs == 'string' ? cs : cs.join(' ');
-          this.el.attr({ class: cs });
+          this.el.attr({class: cs});
         }
       } else {
         if (state.html && state.html != this.el.innerHTML) this.el.innerHTML = state.html;
@@ -648,57 +664,81 @@ Oleksii Shnyra, UABRO
         if (state.class) {
           cs = state.class;
           cs = typeof cs == 'string' ? cs : cs.join(' ');
-          this.el.attr({ class: cs });
+          this.el.attr({class: cs});
         }
       }
       return this;
-    }
+    };
 
     selfDC.make = function (obj) {
       if (typeof obj == 'function') obj = obj();
       return new DomCom(obj);
-    }
+    };
 
     selfDC.temp = function (obj) {
       if (typeof obj == 'function') obj = obj();
       if (typeof obj == 'undefined') obj = {};
       obj.temp = 1;
       return new DomCom(obj);
-    }
+    };
 
     selfDC.module = function () {
-      var fn = function (name, script) {
+      let fn = function (name, script) {
         if (!name) {
           console.log('loaded module have wrong structure');
           return;
         }
         if (!script) return fn.loaded[name];
         fn.loaded[name] = script;
-      }
+      };
       fn.loaded = {};
       fn.run = function (name, obj) {
-        var data = obj.data;
-        var api = obj.ready;
+        let data = obj.data;
+        let api = obj.ready;
         if (fn.loaded[name]) {
           if (!data) data = {};
-          var module = fn.loaded[name](data);
+          let module = fn.loaded[name](data);
           fn.loaded[name] = module;
           if (api) api(module.dc, module.api);
         } else {
           obj.err && obj.err('module "' + name + '" not loaded');
         }
-      }
+      };
       return fn;
-    } ();
+    }();
+
+    const models = {};
+    selfDC.model = (name, defaults) => {
+      models[name] = defaults;
+    };
+
+    selfDC.getModel = name => {
+      return models[name];
+    };
+
+    selfDC.getModels = () => {
+      return models;
+    };
+
+    selfDC.from = (name, params) => {
+      if(typeof name === 'function') return selfDC.temp(name(params));
+      let base = models[name];
+      if (!base) {
+        base = params;
+      } else {
+        base = base(params);
+      }
+      return selfDC.temp(base);
+    };
 
     selfDC.load = function () {
-      var loaded = selfDC.module.loaded;
-      var mn_src;
-      var fn = function (obj) {
-        var name = obj.name;
+      let loaded = selfDC.module.loaded;
+      let mn_src;
+      let fn = function (obj) {
+        let name = obj.name;
         if (loaded[name] && !obj.force) {
           if (obj.exist) {
-            var module = loaded[name];
+            let module = loaded[name];
             if (typeof obj.exist == 'function') obj.exist(module.dc, module.api);
           } else {
             obj.err && obj.err('module "' + name + '" already loaded. Use `force` to load it again');
@@ -744,7 +784,7 @@ Oleksii Shnyra, UABRO
               .insertIn(document.head);
             selfDC.module.run(name, obj);
           } else {
-            var src = mn_src + name;
+            let src = mn_src + name;
             selfDC.temp({
               eltype: 'script',
               attrs: {
@@ -763,16 +803,21 @@ Oleksii Shnyra, UABRO
               .insertIn(document.head);
           }
         }
-      }
+      };
       fn.config = function (obj) {
         if (obj.src) mn_src = obj.src;
-      }
+      };
       return fn;
-    } ();
-  }
-  DC = new DC;
+    }();
+  };
 
-  window.DC = DC;
-  window.$ = DC.sel;
+  DC.prototype.instance = () => {
+    return new DC;
+  };
 
-} ());
+  let iDC = new DC;
+
+  window.DC = iDC;
+  window.$ = iDC.sel;
+
+}();
