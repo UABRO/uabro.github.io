@@ -109,7 +109,7 @@
     let selfDC = this;
     Object.defineProperty(this, 'version', {
       get() {
-        return '1.9.2';
+        return '1.9.3';
       }
     });
     if (!window.fetch) {// support only modern browsers
@@ -727,6 +727,7 @@
 
     selfDC.from = (name, params) => {
       if (typeof name === 'function') return selfDC.temp(name(params));
+      if (typeof models[name] === 'function') return models[name](params);
       let base = models[name];
       if (!base) {
         base = params;
