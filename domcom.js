@@ -96,13 +96,20 @@
     return this.getBoundingClientRect();
   };
 
+  function iterObj(obj, fn) {
+    for(let key in obj) {
+      if(!obj.hasOwnProperty(key)) continue;
+      fn(key, obj[key]);
+    }
+  }
+
   // actual initialization of DC
 
   const DC = function () {
     let selfDC = this;
     Object.defineProperty(this, 'version', {
       get() {
-        return '1.9.1';
+        return '1.9.2';
       }
     });
     if (!window.fetch) {// support only modern browsers
@@ -114,7 +121,7 @@
       return;
     }
     let parseHTML = function (html, ctx) {
-      let a, el, ctxel, char, parent, closingtag, godown = -1, goup,
+      let a, el, char, parent, closingtag, godown = -1, goup,
         quoted, dom, attris, tagready, tagstarted, intag, inspectag,
         text = '',
         quote = '',
@@ -278,9 +285,7 @@
       };
 
       fn.set = obj => {
-        for (let lang in obj) {
-          Lang[lang] = obj[lang];
-        }
+        iterObj(obj, (key, val) => Lang[key] = val);
         return fn;
       };
 
@@ -423,40 +428,40 @@
         instance.extend(obj.extend);
       }
       if (obj.state) {
-        for (let prop in obj.state) {
-          if (prop == 'class') {
-            instance.state.class = obj.state[prop];
+        iterObj(obj.state, (key, val) => {
+          if (key === 'class') {
+            instance.state.class = val;
           } else {
-            if (prop == 'itext' || prop == 'ihtml' || prop == 'iholder') {
+            if (key === 'itext' || key === 'ihtml' || key === 'iholder') {
               LangDC[selfId] = {
                 dc: instance
               };
-              if (prop == 'ihtml') {
+              if (key == 'ihtml') {
                 LangDC[selfId].type = 'html';
-                instance.h = selfDC.lang(obj.state.ihtml);
-              } else if (prop == 'iholder') {
+                instance.h = selfDC.lang(val);
+              } else if (key == 'iholder') {
                 LangDC[selfId].type = 'placeholder';
-                instance.state.placeholder = selfDC.lang(obj.state.iholder);
+                instance.state.placeholder = selfDC.lang(val);
               } else {
                 LangDC[selfId].type = 'itext';
-                instance.t = selfDC.lang(obj.state.itext);
+                instance.t = selfDC.lang(val);
               }
             }
-            instance.state[prop] = obj.state[prop];
+            instance.state[key] = val;
           }
-        }
+        });
       }
       if (obj.attrs) {
-        for (let prop in obj.attrs) {
+        iterObj(obj.attrs, (key, val) => {
           a = {};
-          a[prop] = obj.attrs[prop];
-          if (prop == 'value') {
-            instance.state.val = obj.attrs[prop];
+          a[key] = val;
+          if (key == 'value') {
+            instance.state.val = val;
           } else {
-            instance.state[prop] = obj.attrs[prop];
+            instance.state[key] = val;
           }
           instance.el.attr(a);
-        }
+        });
       }
       if (obj.groups) {
         b = obj.groups;
@@ -496,8 +501,7 @@
     };
 
     DomCom.prototype.insertAs = DomCom.prototype.iAs = function (target) {
-      let el = selfDC.sel(target, 1);
-      this.el = el;
+      this.el = selfDC.sel(target, 1);
       return this.render({});
     };
 
@@ -509,10 +513,11 @@
           return;
         }
       }
-      for (let b in state) {
-        this.state[b] = state[b], only[b] = true;
-        if (['html', 'text', 'val', 'placeholder', 'class'].indexOf(b) + 1) i++;
-      }
+      iterObj(state, (a, b) => {
+        this.state[a] = b;
+        only[a] = true;
+        if (['html', 'text', 'val', 'placeholder', 'class'].indexOf(a) + 1) i++;
+      });
       if (i) {
         this.render(only);
       } else {
@@ -605,34 +610,34 @@
 
     DomCom.prototype.extend = function (obj) {// set or rewrite methods and properties of dc
       let self = this;
-      for (let prop in obj) {
-        if (prop == 'events') {
-          self.addEvents(obj[prop]);
+      iterObj(obj, (key, val) => {
+        if (key == 'events') {
+          self.addEvents(val);
         } else {
-          self[prop] = obj[prop];
+          self[key] = val;
         }
-      }
+      });
     };
 
     DomCom.prototype.addEvents = function (obj) {
       let self = this;
-      for (let prop in obj) {
-        if (selfDC.isPseudo(prop)) {
-          if (prop == 'lang') {
+      iterObj(obj, (key, val) => {
+        if (selfDC.isPseudo(key)) {
+          if (key == 'lang') {
             LangDC[self.id] = {
               dc: self,
-              f: obj[prop].bind(self)
+              f: val.bind(self)
             }
           } else {
-            selfDC.newPseudo(prop, self);
+            selfDC.newPseudo(key, self);
           }
-          self['on' + prop] = obj[prop].bind(self);
+          self['on' + key] = val.bind(self);
         } else {
-          self.eventsArr.push(prop);
-          self['on' + prop] = obj[prop].bind(self.el);
-          self.el.addEventListener(prop, self['on' + prop]);
+          self.eventsArr.push(key);
+          self['on' + key] = val.bind(self.el);
+          self.el.addEventListener(key, self['on' + key]);
         }
-      }
+      });
     };
 
     DomCom.prototype.DClist = function (v) {
@@ -721,7 +726,7 @@
     };
 
     selfDC.from = (name, params) => {
-      if(typeof name === 'function') return selfDC.temp(name(params));
+      if (typeof name === 'function') return selfDC.temp(name(params));
       let base = models[name];
       if (!base) {
         base = params;
@@ -811,8 +816,82 @@
     }();
   };
 
+  // shared objects
+  DC.prototype.shared = {};
+  // shared functions
+  DC.prototype.fshared = {};
+
+  DC.prototype.iterObj = iterObj;
+
   DC.prototype.instance = () => {
     return new DC;
+  };
+
+  DC.prototype.Emitter = function () {
+    const events = {};
+    this.on = (event, f) => {
+      if (!events[event]) events[event] = [];
+      events[event].push(f);
+    };
+    this.emit = (event, data) => {
+      if (events[event]) events[event].forEach(f => f(data));
+    }
+  };
+
+  DC.prototype.Rest = function () {
+    const self = this;
+    let headers = {};
+    this.base = '';
+
+    const request = (type) => (url, data) => sendRequest(type, url, data);
+
+    this.get = request('GET');
+
+    this.post = request('POST');
+
+    this.put = request('PUT');
+
+    this.delete = request('DELETE');
+
+    this.patch = request('PATCH');
+
+    this.setH = (key, val) => headers[key] = val;
+
+    this.remH = key => delete headers[key];
+
+    function sendRequest(type, url, data) {
+      const request = new XMLHttpRequest();
+      return new Promise((resolve, reject) => {
+        request.open(type, self.base + url);
+
+        request.onreadystatechange = function () {
+          if (this.readyState === 4) {
+            let res;
+            try {
+              res = JSON.parse(this.responseText);
+            } catch (err) {
+              res = {};
+            }
+            this.json = res;
+            this.status === 200 ?
+              resolve(res) :
+              reject(this);
+          }
+        };
+
+        for (let key in headers) {
+          if (!headers.hasOwnProperty(key)) continue;
+          request.setRequestHeader(key, headers[key]);
+        }
+
+        if (type === 'GET') {
+          request.send();
+        } else {
+          request.setRequestHeader('Content-Type', 'application/json');
+          request.send(JSON.stringify(data));
+        }
+      });
+    }
   };
 
   let iDC = new DC;
