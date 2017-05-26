@@ -112,7 +112,7 @@
         return '1.9.4';
       }
     });
-    if (!window.fetch) {// support only modern browsers
+    if (!window.Worker) {// support only modern browsers
       selfDC.ready = function () {
         document.addEventListener("DOMContentLoaded", function () {
           document.body.innerHTML = "<h1><b style='color:#000;padding:10px;'>You are using bad browser! What's wrong with you, man!???</b></h1>";
