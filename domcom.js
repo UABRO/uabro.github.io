@@ -193,7 +193,7 @@
         } else if (inspectag) {// for operations between "{" && "}"
           if (tagready) {
             buf += html[i - 1];
-            ctx[buf].insertIn(el);
+            ctx[buf].into(el);
             inspectag = 0;
           } else {
             if (html[i + 1] == '}') {
@@ -493,7 +493,7 @@
     // use prototype for performance reasons
     DomCom.prototype.parentEl = false;
 
-    DomCom.prototype.insertIn = DomCom.prototype.iIn = function (target) {
+    DomCom.prototype.insertIn = DomCom.prototype.iIn = DomCom.prototype.into = function (target) {
       let el = selfDC.sel(target, 1);
       el.appendChild(this.el);
       this.parentEl = el;
@@ -642,9 +642,9 @@
 
     DomCom.prototype.DClist = function (v) {
       let self = this;
-      self.change({html: ''});
+      self.h = '';
       v.map(function (a) {
-        a.insertIn(self);
+        a.into(self);
       });
       return self;
     };
@@ -769,7 +769,7 @@
               }
             }
           })
-            .insertIn(document.head);
+            .into(document.head);
         } else {
           load_script();
         }
@@ -781,14 +781,14 @@
                 text: obj.rawcss
               }
             })
-              .insertIn(document.head);
+              .into(document.head);
             selfDC.temp({
               eltype: 'script',
               state: {
                 text: obj.raw
               }
             })
-              .insertIn(document.head);
+              .into(document.head);
             selfDC.module.run(name, obj);
           } else {
             let src = mn_src + name;
@@ -807,7 +807,7 @@
                 }
               }
             })
-              .insertIn(document.head);
+              .into(document.head);
           }
         }
       };
@@ -902,3 +902,7 @@
   window.$ = iDC.sel;
 
 }();
+
+/**
+ * @deprecated DC.iIn, DC.insertIn
+ */
