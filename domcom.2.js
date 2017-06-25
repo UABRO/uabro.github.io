@@ -3,10 +3,10 @@
  * @author Oleksii Shnyra, UABRO
  * @website https://uabro.com
  * @namespace DC
- * @version 2.0.0
+ * @version 2.0.1
  */
 
-!function () {
+(function () {
   if (!window.Worker) {// support only modern browsers
     document.addEventListener("DOMContentLoaded", function () {
       document.body.innerHTML = "<h1><b style='color:#000;padding:10px;'>You are using bad browser! What's wrong with you, man!???</b></h1>";
@@ -16,16 +16,16 @@
 
   const DC = function () {
     return (tag = 'div', rules) => {
-      if(typeof tag === 'function') {
-        if(!rules){
+      if (typeof tag === 'function') {
+        if (!rules) {
           const el = document.createElement('div');
           return DomRules.apply(el, tag(el));
         }
         tag = tag();
       }
       if (typeof tag === 'object' && !rules) {
-          rules = tag;
-          tag = 'div';
+        rules = tag;
+        tag = 'div';
       }
       const el = document.createElement(tag);
       if (!rules) return el;
@@ -191,7 +191,7 @@
         if (this.placeholder !== val) this.placeholder = val;
       }
     },
-    class: {
+    c: {
       get() {
         return this.classList;
       },
@@ -208,19 +208,20 @@
 
   function _dynamicSort(property) {
     let sortOrder = 1;
-    if(property[0] === "-") {
+    if (property[0] === "-") {
       sortOrder = -1;
       property = property.substr(1);
     }
-    return function (a,b) {
+    return function (a, b) {
       const result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
       return result * sortOrder;
     }
   }
+
   Object.defineProperty(Array.prototype, "sortBy", {
     enumerable: false,
     writable: true,
-    value: function() {
+    value: function () {
       return this.sort(_dynamicSort.apply(null, arguments));
     }
   });
@@ -258,14 +259,14 @@
         element.addEventListener(k, v);
       });
       if (rules.attr) element.attr(rules.attr);
-      if (rules.class) element.class = rules.class;
+      if (rules.c) element.c = rules.c;
       if (rules.style) element.style = rules.style;
       if (rules.extend) element.extend(rules.extend);
       if ('t' in rules) element.t = rules.t;
       if ('v' in rules) element.v = rules.v;
       if ('h' in rules) element.h = rules.h;
       if ('ph' in rules) element.ph = rules.ph;
-      if(rules.gmtr) iterObj(rules.gmtr, (k,v) => gmtr.on(k, v));
+      if (rules.gmtr) iterObj(rules.gmtr, (k, v) => gmtr.on(k, v));
       prevented && prevented.forEach(k => element.addEventListener(k, e => e.preventDefault()));
       rules.init && rules.init.bind(element)();
       return element;
@@ -284,6 +285,7 @@
         a.addedNodes.forEach(node => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             DomRules.forTag(node, node.nodeName.toLowerCase());
+            Array.prototype.forEach.call(node.attributes, a => DomRules.forTag(node,'_' + a.name));
           }
         });
         // a.removedNodes.forEach(node => {
@@ -349,7 +351,7 @@
   }
 
   DC.model = (name, tag, defaults) => {
-    if(!defaults) {
+    if (!defaults) {
       defaults = tag;
     } else {
       defaults.tag = tag;
@@ -370,7 +372,7 @@
     const model = models[name];
     if (!model) return console.log('model not found. Check model name', name);
     let obj = model(params);
-    if(obj instanceof Element) return obj;
+    if (obj instanceof Element) return obj;
     return DC(model.tag || 'div', obj);
   };
 
@@ -544,4 +546,4 @@
   window.$ = document.querySelector.bind(document);
   window.$$ = document.querySelectorAll.bind(document);
 
-}();
+})();
