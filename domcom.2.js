@@ -545,7 +545,6 @@
 
     function sendRequest(type, url, data) {
       const pre = this;
-      console.log(pre);
       const request = this._request || new XMLHttpRequest();
       return new Promise((resolve, reject) => {
         request.open(type, self.base + url);
