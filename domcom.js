@@ -3,6 +3,9 @@
  DomCom framework, 2016,
  Oleksii Shnyra, UABRO
 
+ !!! This version deprecated
+ !!! Forget it
+
  */
 !function () {
   'use strict';

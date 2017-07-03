@@ -3,7 +3,7 @@
  * @author Oleksii Shnyra, UABRO
  * @website https://uabro.com
  * @namespace DC
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 (function () {
@@ -285,7 +285,7 @@
         a.addedNodes.forEach(node => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             DomRules.forTag(node, node.nodeName.toLowerCase());
-            Array.prototype.forEach.call(node.attributes, a => DomRules.forTag(node,'_' + a.name));
+            Array.prototype.forEach.call(node.attributes, a => DomRules.forTag(node, '_' + a.name));
           }
         });
         // a.removedNodes.forEach(node => {
@@ -349,6 +349,51 @@
       return this.defaults[key] || this.default;
     }
   }
+
+  class Router {
+    constructor() {
+      this.rules = [];
+      DC.onwindow('popstate', e => this.checkRules());
+    }
+
+    rule(pattern, fn) {
+      this.rules.push({pattern, fn});
+    }
+
+    checkRules(data) {
+      for (let i = this.rules.length - 1; i >= 0; i -= 1) {
+        const o = this.rules[i];
+        if (location.pathname.match(o.pattern)) {
+          o.fn(data);
+          break;
+        }
+      }
+    }
+
+    go(url, query, data) {
+      if (query) {
+        url += '?';
+        DC.iterObj(query, (k, v) => {
+          url += `${k}=${v}`
+        });
+      }
+      history.pushState(null, null, url);
+      this.checkRules(data);
+    }
+  }
+
+  Object.defineProperty(Router.prototype, 'query', {
+    get() {
+      const arr = location.search.substr(1).split('&');
+      const keys = {};
+      if (!arr.length || arr[0] === '') return keys;
+      arr.forEach(s => {
+        const r = s.split('=');
+        keys[r[0].toLowerCase()] = r[1];
+      });
+      return keys;
+    }
+  });
 
   DC.model = (name, tag, defaults) => {
     if (!defaults) {
@@ -464,26 +509,50 @@
     let headers = {};
     this.base = '';
 
-    const request = (type) => (url, data) => sendRequest(type, url, data);
+    const request = (type) => function(url, data) {
+      return sendRequest.bind(this)(type, url, data);
+    };
 
-    this.get = request('GET');
+    function Pre(request, headers) {
+      this._request = request;
+      this._headers = headers;
+    }
 
-    this.post = request('POST');
+    this.get = Pre.prototype.get = request('GET');
 
-    this.put = request('PUT');
+    this.post = Pre.prototype.post = request('POST');
 
-    this.delete = request('DELETE');
+    this.put = Pre.prototype.put = request('PUT');
 
-    this.patch = request('PATCH');
+    this.delete = Pre.prototype.delete = request('DELETE');
+
+    this.patch = Pre.prototype.patch = request('PATCH');
 
     this.setH = (key, val) => headers[key] = val;
 
     this.remH = key => delete headers[key];
 
-    function sendRequest(type, url, data) {
+    this.headers = obj => {
       const request = new XMLHttpRequest();
+      return new Pre(request, obj);
+    };
+
+    this.xhr = fn => {
+      const request = new XMLHttpRequest();
+      fn(request);
+      return new Pre(request);
+    };
+
+    function sendRequest(type, url, data) {
+      const pre = this;
+      console.log(pre);
+      const request = this._request || new XMLHttpRequest();
       return new Promise((resolve, reject) => {
         request.open(type, self.base + url);
+
+        if (pre._headers) DC.iterObj(pre._headers, (k, v) => {
+          request.setRequestHeader(k, v);
+        });
 
         request.onreadystatechange = function () {
           if (this.readyState === 4) {
@@ -524,6 +593,7 @@
   };
 
   DC.DomRules = DomRules;
+  DC.Router = Router;
   DC.LiveObject = LiveObject;
   DC.iterObj = iterObj;
   // shared references
