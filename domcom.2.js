@@ -3,7 +3,7 @@
  * @author Oleksii Shnyra, UABRO
  * @website https://uabro.com
  * @namespace DC
- * @version 2.0.2
+ * @version 2.0.3
  */
 
 (function () {
@@ -547,6 +547,15 @@
       const pre = this;
       const request = this._request || new XMLHttpRequest();
       return new Promise((resolve, reject) => {
+        if(!url) url = '';
+        if(type === 'GET' && data) {
+          url += url.match(/\\?/) ? '&' : '?';
+          const query = [];
+          iterObj(data, (k,v) => {
+            query.push(`${k}=${v}`);
+          });
+          url += query.join('&');
+        }
         request.open(type, self.base + url);
 
         if (pre._headers) DC.iterObj(pre._headers, (k, v) => {
