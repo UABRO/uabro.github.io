@@ -12,14 +12,15 @@ branches.create('app', () => {
   }
 });
 
-branches.create('authorized-branch', () => {
+branches.create('authorized-branch', ['app'], (App) => {
   const element = DC();
 
   // branch initialized only on first invocation
   console.log('branch initialized');
 
   function init() {
-    console.log('method called')
+    console.log('method called');
+    App.interfaceMethod();
   }
 
   return {
