@@ -3,7 +3,7 @@
  * @author Oleksii Shnyra, UABRO
  * @website https://uabro.com
  * @namespace DC
- * @version 2.0.3
+ * @version 2.0.4
  */
 
 (function () {
@@ -509,7 +509,7 @@
     let headers = {};
     this.base = '';
 
-    const request = (type) => function(url, data) {
+    const request = (type) => function (url, data) {
       return sendRequest.bind(this)(type, url, data);
     };
 
@@ -547,11 +547,11 @@
       const pre = this;
       const request = this._request || new XMLHttpRequest();
       return new Promise((resolve, reject) => {
-        if(!url) url = '';
-        if(type === 'GET' && data) {
+        if (!url) url = '';
+        if (type === 'GET' && data) {
           url += url.match(/\\?/) ? '&' : '?';
           const query = [];
-          iterObj(data, (k,v) => {
+          iterObj(data, (k, v) => {
             query.push(`${k}=${v}`);
           });
           url += query.join('&');
@@ -598,6 +598,58 @@
 
   DC.onwindow = function (e, f) {
     window.addEventListener(e, f);
+  };
+
+  DC.branches = {
+    names: {},
+    invoked: [],
+    dependencies: {},
+    check(name) {
+      const branch = this.names[name];
+      if (!branch) return false;
+      if (!~this.invoked.indexOf(name)) {
+        this.names[name] = this.get(this.dependencies[name], branch, name);
+        this.invoked.push(name);
+      }
+      return true;
+    },
+    create(name) {
+      if (this.names[name]) return console.error('branch', name, 'already registered');
+      if (arguments.length < 2) return console.error('not enough arguments to create branch');
+      const fn = arguments[arguments.length - 1];
+      if (typeof fn !== 'function') return console.error('no init function for branch', name);
+      if (arguments.length > 2) {
+        if (arguments.length > 3) return console.error('too much arguments for creating branch', name);
+        this.dependencies[name] = arguments[1];
+      }
+      this.names[name] = fn;
+    },
+    get(dependencies, fn, except) {
+      const interfaces = [];
+      let failed;
+      if (dependencies) {
+        if (typeof dependencies === 'string') {
+          if (except && dependencies === except) return console.warn('branch', name, 'invoke itself causing infinite recursion. Invocation was skipped');
+          if (!this.check(dependencies)) return console.error('branch', dependencies, 'not exist before invocation');
+          interfaces.push(this.names[dependencies]);
+        } else {
+          dependencies.forEach(name => {
+            if (failed) return;
+            if (except && name === except) return console.warn('branch', name, 'invoke itself causing infinite recursion. Invocation was skipped');
+            if (!this.check(name)) {
+              failed = true;
+              return console.error('branch', name, 'not exist before invocation');
+            }
+            interfaces.push(this.names[name]);
+          });
+        }
+      }
+      if (failed) return console.error('branch', name, 'invocation failed');
+      return fn.apply(fn, interfaces);
+    },
+    initialize(dependencies, fn) {
+      DC.ready(() => this.get(dependencies, fn));
+    }
   };
 
   DC.DomRules = DomRules;
