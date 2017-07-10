@@ -603,12 +603,12 @@
   DC.branches = {
     names: {},
     invoked: [],
-    dependencies: {},
+    tree: {},
     check(name) {
       const branch = this.names[name];
       if (!branch) return false;
       if (!~this.invoked.indexOf(name)) {
-        this.names[name] = this.get(this.dependencies[name], branch, name);
+        this.names[name] = this.get(this.tree[name], branch, name);
         this.invoked.push(name);
       }
       return true;
@@ -620,20 +620,20 @@
       if (typeof fn !== 'function') return console.error('no init function for branch', name);
       if (arguments.length > 2) {
         if (arguments.length > 3) return console.error('too much arguments for creating branch', name);
-        this.dependencies[name] = arguments[1];
+        this.tree[name] = arguments[1];
       }
       this.names[name] = fn;
     },
-    get(dependencies, fn, except) {
+    get(children, fn, except) {
       const interfaces = [];
       let failed;
-      if (dependencies) {
-        if (typeof dependencies === 'string') {
-          if (except && dependencies === except) return console.warn('branch', name, 'invoke itself causing infinite recursion. Invocation was skipped');
-          if (!this.check(dependencies)) return console.error('branch', dependencies, 'not exist before invocation');
-          interfaces.push(this.names[dependencies]);
+      if (children) {
+        if (typeof children === 'string') {
+          if (except && children === except) return console.warn('branch', name, 'invoke itself causing infinite recursion. Invocation was skipped');
+          if (!this.check(children)) return console.error('branch', children, 'not exist before invocation');
+          interfaces.push(this.names[children]);
         } else {
-          dependencies.forEach(name => {
+          children.forEach(name => {
             if (failed) return;
             if (except && name === except) return console.warn('branch', name, 'invoke itself causing infinite recursion. Invocation was skipped');
             if (!this.check(name)) {
@@ -647,8 +647,8 @@
       if (failed) return console.error('branch', name, 'invocation failed');
       return fn.apply(fn, interfaces);
     },
-    initialize(dependencies, fn) {
-      DC.ready(() => this.get(dependencies, fn));
+    initialize(children, fn) {
+      DC.ready(() => this.get(children, fn));
     }
   };
 
