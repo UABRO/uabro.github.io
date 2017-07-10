@@ -600,6 +600,8 @@
     window.addEventListener(e, f);
   };
 
+  // DC branches follow tree structure
+  // So, branch cannot contain any of its parental branches
   DC.branches = {
     names: {},
     invoked: [],
