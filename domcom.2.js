@@ -66,7 +66,7 @@
 
   Object.assign(Element.prototype, {
     show(v) {
-      if (!arguments.length) v = 'block';
+      if (!arguments.length) v = '';
       this.style.display = v;
       return this;
     },
