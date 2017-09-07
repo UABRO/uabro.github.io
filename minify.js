@@ -11,7 +11,7 @@ fs.readFile('domcom.2.js', 'utf8', (err, data) => {
       js_code: data
     }
   }, (err, httpResponse, body) => {
-    if (err || httpResponse.statusCode != 200) return console.log('error', body);
+    if (err || httpResponse.statusCode !== 200) return console.log('error', body);
     try {
       body = JSON.parse(body);
       const data =
@@ -30,5 +30,4 @@ fs.readFile('domcom.2.js', 'utf8', (err, data) => {
       console.log(err);
     }
   });
-  // console.log(data.slice(0, 100));
 });
